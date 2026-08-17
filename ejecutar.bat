@@ -12,19 +12,41 @@ echo.
 REM Moverse al directorio donde esta el .bat
 cd /d "%~dp0"
 
-REM ── 1. Verificar Python ───────────────────────────────────────
+REM ── 1. Detectar Python (py, python, python3) ──────────────────
 echo [1/5] Verificando Python...
-python --version >nul 2>&1
-if errorlevel 1 (
-    echo.
-    echo [ERROR] Python no esta instalado o no esta en el PATH.
-    echo         Descargue Python 3.9+ desde: https://www.python.org/downloads/
-    echo         Marque la opcion "Add Python to PATH" al instalar.
-    echo.
-    pause
-    exit /b 1
+set PYTHON=
+
+REM Intentar con el Python Launcher (py) primero
+py --version >nul 2>&1
+if not errorlevel 1 (
+    set PYTHON=py
+    goto :python_ok
 )
-python --version
+
+REM Intentar con python
+python --version >nul 2>&1
+if not errorlevel 1 (
+    set PYTHON=python
+    goto :python_ok
+)
+
+REM Intentar con python3
+python3 --version >nul 2>&1
+if not errorlevel 1 (
+    set PYTHON=python3
+    goto :python_ok
+)
+
+echo.
+echo [ERROR] Python no encontrado.
+echo         Descargue Python 3.9+ desde: https://www.python.org/downloads/
+echo         Marque la opcion "Add Python to PATH" al instalar.
+echo.
+pause
+exit /b 1
+
+:python_ok
+%PYTHON% --version
 echo.
 
 REM ── 2. Verificar archivos requeridos ─────────────────────────
@@ -55,7 +77,7 @@ REM ── 3. Crear entorno virtual ──────────────�
 echo [3/5] Preparando entorno virtual...
 if not exist "venv\" (
     echo     Creando entorno virtual...
-    python -m venv venv
+    %PYTHON% -m venv venv
     if errorlevel 1 (
         echo [ERROR] No se pudo crear el entorno virtual.
         pause
@@ -70,7 +92,12 @@ REM ── 4. Instalar dependencias ──────────────�
 echo [4/5] Instalando dependencias...
 echo     (Puede tardar varios minutos la primera vez)
 call venv\Scripts\activate.bat
-pip install -r requirements.txt -q
+
+REM Actualizar pip primero para garantizar compatibilidad con Python 3.9-3.14
+venv\Scripts\python.exe -m pip install --upgrade pip -q
+
+REM Instalar dependencias
+venv\Scripts\pip.exe install -r requirements.txt -q
 if errorlevel 1 (
     echo [ERROR] Fallo la instalacion de dependencias.
     echo         Verifique su conexion a internet e intente de nuevo.
@@ -90,6 +117,6 @@ echo ============================================================
 echo.
 
 start "" "http://localhost:8501"
-streamlit run app.py --browser.gatherUsageStats false --server.port 8501
+venv\Scripts\streamlit.exe run app.py --browser.gatherUsageStats false --server.port 8501
 
 pause
