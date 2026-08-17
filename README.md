@@ -1,4 +1,4 @@
-# Sistema de Recomendación Laboral — CNSC
+# Sistema de Recomendación Laboral 
 
 **Proyecto:** Modelo Predictivo para la Recomendación de Oportunidades Laborales en el Ámbito Gubernamental  
 **Autores:** Diana Vásquez · Germán Mahecha  
